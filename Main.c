@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <conio.h>
 #include <windows.h>
 
 #define MAX_PRODUTOS 200
@@ -24,45 +25,60 @@ typedef struct {
     float valorTotal;
 } Venda;
 
+typedef enum { FUNCIONARIO, GERENTE, ADMIN } Perfil;
+
 Produto produtos[MAX_PRODUTOS];
 Venda vendas[MAX_PRODUTOS];
 static char pathProdutosCsv[] = "../resources/produtos.csv";
 int totalProdutos = 0;
 int numVendas = 0;
 
+Perfil menuLogin();
 void lerArquivo(const char *nomeArquivo);
-void cadastrarProduto();
+void cadastrarProduto(Perfil perfil);
 void exibirProdutos();
 void exibirRelatorioVendas();
 void realizarCompra();
 void aguardarAcao();
-void menuPrincipal();
+void menuPrincipal(Perfil perfil);
 void carregarProdutosInicio(int *totalProdutos);
 void lerProdutos(FILE *file, Produto produtos[], int *totalProdutos);
 void salvarProdutoNoCSV(Produto produto);
 void atualizarCSV();
+void codificarDecodificar(char *str, char chave);
+int validarLogin(const char *login, const char *senha, Perfil *perfil);
+void excluirUsuario(const char *login);
+void exibirPerfil(Perfil perfil);
+void cadastrarUsuario();
+void gerenciarUsuarios(Perfil perfil);
+void registrarUsuario(const char *login, const char *senha, Perfil perfil);
+void analisarSenha(char *senha);
 
 int main() {
     SetConsoleOutputCP(CP_UTF8);
+
+    Perfil perfil;
     
-    lerArquivo("../resources/banner.txt");
-    aguardarAcao();
     carregarProdutosInicio(&totalProdutos);
-    menuPrincipal();
+    perfil = menuLogin();
+
+    menuPrincipal(perfil);
 
     return 0;
 }
 
-void menuPrincipal(){
+void menuPrincipal(Perfil perfil){
     int opcao;
 
     do {
         system("cls");
         printf("\nSistema de Gerenciamento Hortifruti\n");
+        exibirPerfil(perfil);
         printf("1. Cadastrar Produto\n");
         printf("2. Exibir Produtos\n");
         printf("3. Realizar Compra\n");
         printf("4. Relatório de Vendas\n");
+        printf("5. Gerenciar Usuários\n");
         printf("0. Sair\n");
         printf("Escolha uma opção: ");
         scanf("%d", &opcao);
@@ -71,7 +87,7 @@ void menuPrincipal(){
 
         switch (opcao) {
             case 1:
-                cadastrarProduto();
+                cadastrarProduto(perfil);
                 aguardarAcao();
                 break;
             case 2:
@@ -86,6 +102,10 @@ void menuPrincipal(){
                 exibirRelatorioVendas();
                 aguardarAcao();
                 break;
+            case 5:
+                gerenciarUsuarios(perfil);
+                aguardarAcao();
+                break;
             case 0:
                 printf("Encerrando...\n");
                 break;
@@ -95,7 +115,112 @@ void menuPrincipal(){
     } while (opcao != 0);
 }
 
-void cadastrarProduto() {
+Perfil menuLogin(){
+    Perfil perfil;
+    char login[50], senha[50];
+
+    int validUser;
+    do
+    {
+        system("cls");
+        lerArquivo("../resources/banner.txt");
+        printf("\n\nDigite o login: ");
+        scanf("%s", login);
+        analisarSenha(senha);
+
+        validUser = validarLogin(login, senha, &perfil);
+        switch (validUser) {
+            case 0:
+                system("cls");
+                printf("Login ou senha inválidos.\n");
+                break;
+            case 1:
+                system("cls");
+                printf("Login bem-sucedido!\n");
+                exibirPerfil(perfil);
+                aguardarAcao();
+                break;
+            case 2:
+                system("cls");
+                printf("Nenhum usuário foi cadastrado ainda!\n");
+                aguardarAcao();
+                cadastrarUsuario();
+                break;
+            default:
+                printf("Login ou senha inválidos.\n");
+                break;
+        }
+    } while (validUser != 1);
+    return perfil;
+}
+
+void gerenciarUsuarios(Perfil perfil) {
+    int escolha;
+    char login[50];
+
+    switch (perfil) {
+        case FUNCIONARIO:
+            printf("Perfil com Acesso Insuficiente (FUNCIONARIO)! Somente Perfis ADMIN possuem acesso para Gerenciar Usuarios!\n");
+            return;
+        case GERENTE:
+            printf("Perfil com Acesso Insuficiente (GERENTE)! Somente Perfis ADMIN possuem acesso para Gerenciar Usuarios!\n");
+            return;
+        case ADMIN:
+            break;
+    }
+
+    printf("1. Registrar novo usuário\n");
+    printf("2. Excluir usuário\n");
+    printf("Escolha uma opção: ");
+    scanf("%d", &escolha);
+
+    switch (escolha) {
+        case 1:
+            cadastrarUsuario();
+            break;
+        case 2:
+            printf("Digite o login do usuário a ser excluído: ");
+            scanf("%s", login);
+            excluirUsuario(login);
+            break;
+        default:
+            printf("Opção inválida!\n");
+    }
+}
+
+void cadastrarUsuario(){
+    char login[50], senha[50];
+    system("cls");
+    printf("Cadastro de Novo Usuário: \n");
+    printf("Digite o login: ");
+    scanf("%s", login);
+    analisarSenha(senha);
+
+    int escolhaPerfil;
+    do
+    {
+        printf("\nEscolha o perfil (0: FUNCIONARIO, 1: GERENTE, 2: ADMIN): ");
+        scanf("%d", &escolhaPerfil);
+        if (escolhaPerfil < 0 || escolhaPerfil > 2) {
+            printf("Perfil inválido. Usuário não registrado.\n");
+        }
+    } while (escolhaPerfil < 0 || escolhaPerfil > 2);
+
+    registrarUsuario(login, senha, (Perfil)escolhaPerfil);
+}
+
+void cadastrarProduto(Perfil perfil) {
+
+    switch (perfil) {
+        case FUNCIONARIO:
+            printf("Perfil com Acesso Insuficiente (FUNCIONARIO)! Somente Perfis GERENTE ou ADMIN possuem acesso para Gerenciar Usuarios!\n");
+            return;
+        case GERENTE:
+            break;
+        case ADMIN:
+            break;
+    }
+
     if (totalProdutos < MAX_PRODUTOS) {
         produtos[totalProdutos].id = totalProdutos + 1;
 
@@ -299,4 +424,126 @@ void atualizarCSV() {
     }
 
     fclose(arquivo);
+}
+
+void codificarDecodificar(char *str, char chave) {
+    for (int i = 0; str[i] != '\0'; i++) {
+        str[i] ^= chave; 
+    }
+}
+
+int validarLogin(const char *login, const char *senha, Perfil *perfil) {
+    FILE *arquivo = fopen("../resources/usuarios.dat", "r");
+    if (arquivo == NULL) {
+        return 2;
+    }
+
+    char storedLogin[50], storedSenha[50];
+    int storedPerfil;
+    char chave = 123;
+
+    while (fscanf(arquivo, "%s %s %d", storedLogin, storedSenha, &storedPerfil) != EOF) {
+        codificarDecodificar(storedSenha, chave);
+
+        if (strcmp(storedLogin, login) == 0 && strcmp(storedSenha, senha) == 0) {
+            *perfil = (Perfil)storedPerfil;
+            fclose(arquivo);
+            return 1; 
+        }
+    }
+
+    fclose(arquivo);
+    return 0; 
+}
+
+void registrarUsuario(const char *login, const char *senha, Perfil perfil) {
+    FILE *arquivo = fopen("../resources/usuarios.dat", "a");
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo para registro!\n");
+        return;
+    }
+
+    char chave = 123;
+    char senhaCodificada[50];
+    strcpy(senhaCodificada, senha);
+
+    codificarDecodificar(senhaCodificada, chave);
+
+    fprintf(arquivo, "%s %s %d\n", login, senhaCodificada, perfil);
+    fclose(arquivo);
+
+    printf("Usuário registrado com sucesso!\n");
+}
+
+void excluirUsuario(const char *login) {
+    FILE *arquivo = fopen("../resources/usuarios.dat", "r");
+    FILE *temp = fopen("../resources/temp.dat", "w");
+
+    if (arquivo == NULL || temp == NULL) {
+        printf("Erro ao abrir os arquivos!\n");
+        return;
+    }
+
+    char storedLogin[50], storedSenha[50];
+    int storedPerfil;
+
+    int encontrado = 0;
+    while (fscanf(arquivo, "%s %s %d", storedLogin, storedSenha, &storedPerfil) != EOF) {
+        if (strcmp(storedLogin, login) == 0) {
+            encontrado = 1;
+            continue;
+        }
+        fprintf(temp, "%s %s %d\n", storedLogin, storedSenha, storedPerfil);
+    }
+
+    fclose(arquivo);
+    fclose(temp);
+
+    if (encontrado) {
+        remove("../resources/usuarios.dat");
+        rename("../resources/temp.dat", "usuarios.dat");
+        printf("Usuário %s excluído com sucesso!\n", login);
+    } else {
+        remove("../resources/temp.dat");
+        printf("Usuário não encontrado!\n");
+    }
+}
+
+void exibirPerfil(Perfil perfil) {
+    switch (perfil) {
+        case FUNCIONARIO:
+            printf("Perfil: FUNCIONARIO\n");
+            break;
+        case GERENTE:
+            printf("Perfil: GERENTE\n");
+            break;
+        case ADMIN:
+            printf("Perfil: ADMIN\n");
+            break;
+        default:
+            printf("Perfil desconhecido\n");
+    }
+}
+
+void analisarSenha(char *senha){
+    int i = 0;
+    printf("Digite a senha: ");
+    while(1) {
+        char ch = getch();
+        
+        if (ch == 13) {
+            break;
+        } else if (ch == 8) { 
+            if (i > 0) {
+                i--;
+                printf("\b \b"); 
+            }
+        } else {
+            senha[i] = ch;
+            i++;
+            printf("*"); 
+        }
+    }
+
+    senha[i] = '\0';
 }
