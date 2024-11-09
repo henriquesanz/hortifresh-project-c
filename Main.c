@@ -1,8 +1,96 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <conio.h>
-#include <windows.h>
+#include <unistd.h>
+#include <limits.h>
+
+#ifdef _WIN32
+    #define RESOURCE_PATH "../resources/"
+    #define CLEAR "cls"
+#else
+    #define RESOURCE_PATH "./resources/"
+    #define CLEAR "clear"
+#endif
+
+#ifdef _WIN32
+    #include <conio.h>
+    #include <windows.h>
+#else
+    #include <termios.h>
+    #include <unistd.h>
+
+    void disableEcho() {
+        struct termios tty;
+        tcgetattr(STDIN_FILENO, &tty);
+        tty.c_lflag &= ~ECHO;
+        tcsetattr(STDIN_FILENO, TCSANOW, &tty);
+    }
+
+    void enableEcho() {
+        struct termios tty;
+        tcgetattr(STDIN_FILENO, &tty);
+        tty.c_lflag |= ECHO;
+        tcsetattr(STDIN_FILENO, TCSANOW, &tty);
+    }
+#endif
+
+void configurarUTF8() {
+#ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8);
+#endif
+}
+
+void analisarSenha(char *senha) {
+    int i = 0;
+    char ch;
+    printf("Digite a senha: ");
+
+#ifdef _WIN32
+    while (1) {
+        ch = getch();
+
+        if (ch == 13) {  // Enter
+            break;
+        } else if (ch == 8) {  // Backspace
+            if (i > 0) {
+                i--;
+                printf("\b \b");
+            }
+        } else {
+            senha[i] = ch;
+            i++;
+            printf("*");
+        }
+    }
+#else
+
+    while ((ch = getchar()) != '\n' && ch != EOF);
+
+    disableEcho();
+
+    while (1) {
+        ch = getchar();
+
+        if (ch == '\n' || ch == '\r') {
+            break;
+        } else if (ch == 127 || ch == 8) { 
+            if (i > 0) {
+                i--;
+                printf("\b \b");
+            }
+        } else {
+            senha[i] = ch;
+            i++;
+            printf("*");
+        }
+    }
+
+    enableEcho();
+#endif
+
+    senha[i] = '\0';
+    printf("\n");
+}
 
 #define MAX_PRODUTOS 200
 #define MAX_STRING_LENGTH 50
@@ -29,7 +117,6 @@ typedef enum { FUNCIONARIO, GERENTE, ADMIN } Perfil;
 
 Produto produtos[MAX_PRODUTOS];
 Venda vendas[MAX_PRODUTOS];
-static char pathProdutosCsv[] = "../resources/produtos.csv";
 int totalProdutos = 0;
 int numVendas = 0;
 
@@ -37,7 +124,7 @@ Perfil menuLogin();
 void lerArquivo(const char *nomeArquivo);
 void cadastrarProduto(Perfil perfil);
 void exibirProdutos();
-void exibirRelatorioVendas();
+void exibirRelatorioVendas(Perfil perfil);
 void realizarCompra();
 void aguardarAcao();
 void menuPrincipal(Perfil perfil);
@@ -53,9 +140,10 @@ void cadastrarUsuario();
 void gerenciarUsuarios(Perfil perfil);
 void registrarUsuario(const char *login, const char *senha, Perfil perfil);
 void analisarSenha(char *senha);
+char* resourceFile(char *nome);
 
 int main() {
-    SetConsoleOutputCP(CP_UTF8);
+    configurarUTF8();
 
     Perfil perfil;
     
@@ -71,7 +159,7 @@ void menuPrincipal(Perfil perfil){
     int opcao;
 
     do {
-        system("cls");
+        system(CLEAR);
         printf("\nSistema de Gerenciamento Hortifruti\n");
         exibirPerfil(perfil);
         printf("1. Cadastrar Produto\n");
@@ -83,7 +171,7 @@ void menuPrincipal(Perfil perfil){
         printf("Escolha uma opção: ");
         scanf("%d", &opcao);
 
-        system("cls");
+        system(CLEAR);
 
         switch (opcao) {
             case 1:
@@ -99,7 +187,7 @@ void menuPrincipal(Perfil perfil){
                 aguardarAcao();
                 break;
             case 4:
-                exibirRelatorioVendas();
+                exibirRelatorioVendas(perfil);
                 aguardarAcao();
                 break;
             case 5:
@@ -122,8 +210,8 @@ Perfil menuLogin(){
     int validUser;
     do
     {
-        system("cls");
-        lerArquivo("../resources/banner.txt");
+        system(CLEAR);
+        lerArquivo(resourceFile("banner.txt"));
         printf("\n\nDigite o login: ");
         scanf("%s", login);
         analisarSenha(senha);
@@ -131,17 +219,17 @@ Perfil menuLogin(){
         validUser = validarLogin(login, senha, &perfil);
         switch (validUser) {
             case 0:
-                system("cls");
+                system(CLEAR);
                 printf("Login ou senha inválidos.\n");
                 break;
             case 1:
-                system("cls");
+                system(CLEAR);
                 printf("Login bem-sucedido!\n");
                 exibirPerfil(perfil);
                 aguardarAcao();
                 break;
             case 2:
-                system("cls");
+                system(CLEAR);
                 printf("Nenhum usuário foi cadastrado ainda!\n");
                 aguardarAcao();
                 cadastrarUsuario();
@@ -190,7 +278,7 @@ void gerenciarUsuarios(Perfil perfil) {
 
 void cadastrarUsuario(){
     char login[50], senha[50];
-    system("cls");
+    system(CLEAR);
     printf("Cadastro de Novo Usuário: \n");
     printf("Digite o login: ");
     scanf("%s", login);
@@ -339,7 +427,16 @@ void realizarCompra() {
     atualizarCSV();
 }
 
-void exibirRelatorioVendas() {
+void exibirRelatorioVendas(Perfil perfil) {
+    switch (perfil) {
+        case FUNCIONARIO:
+            printf("Perfil com Acesso Insuficiente (FUNCIONARIO)! Somente Perfis GERENTE ou ADMIN possuem acesso para Gerenciar Usuarios!\n");
+            return;
+        case GERENTE:
+            break;
+        case ADMIN:
+            break;
+    }
     printf("Relatório de Vendas:\n");
     printf("ID Produto | Nome Produto | Preço Unitário | Quantidade Vendida | Valor Total\n");
     for (int i = 0; i < numVendas; i++) {
@@ -371,7 +468,7 @@ void aguardarAcao(){
 }
 
 void carregarProdutosInicio(int *totalProdutos){
-    FILE *file = fopen(pathProdutosCsv, "r");
+    FILE *file = fopen(resourceFile("produtos.csv"), "r");
     if (file != NULL) {
         lerProdutos(file, produtos, totalProdutos);
         fclose(file);
@@ -399,7 +496,7 @@ void lerProdutos(FILE *file, Produto produtos[], int *totalProdutos) {
 }
 
 void salvarProdutoNoCSV(Produto produto) {
-    FILE *file = fopen(pathProdutosCsv, "a");
+    FILE *file = fopen(resourceFile("produtos.csv"), "a");
     if (file == NULL) {
         printf("Erro ao abrir o arquivo.\n");
         return;
@@ -411,7 +508,7 @@ void salvarProdutoNoCSV(Produto produto) {
 }
 
 void atualizarCSV() {
-    FILE *arquivo = fopen(pathProdutosCsv, "w");
+    FILE *arquivo = fopen(resourceFile("produtos.csv"), "w");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo.\n");
         return;
@@ -433,7 +530,7 @@ void codificarDecodificar(char *str, char chave) {
 }
 
 int validarLogin(const char *login, const char *senha, Perfil *perfil) {
-    FILE *arquivo = fopen("../resources/usuarios.dat", "r");
+    FILE *arquivo = fopen(resourceFile("usuarios.dat"), "r");
     if (arquivo == NULL) {
         return 2;
     }
@@ -457,7 +554,7 @@ int validarLogin(const char *login, const char *senha, Perfil *perfil) {
 }
 
 void registrarUsuario(const char *login, const char *senha, Perfil perfil) {
-    FILE *arquivo = fopen("../resources/usuarios.dat", "a");
+    FILE *arquivo = fopen(resourceFile("usuarios.dat"), "a");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo para registro!\n");
         return;
@@ -476,8 +573,8 @@ void registrarUsuario(const char *login, const char *senha, Perfil perfil) {
 }
 
 void excluirUsuario(const char *login) {
-    FILE *arquivo = fopen("../resources/usuarios.dat", "r");
-    FILE *temp = fopen("../resources/temp.dat", "w");
+    FILE *arquivo = fopen(resourceFile("usuarios.dat"), "r");
+    FILE *temp = fopen(resourceFile("temp.dat"), "w");
 
     if (arquivo == NULL || temp == NULL) {
         printf("Erro ao abrir os arquivos!\n");
@@ -500,13 +597,28 @@ void excluirUsuario(const char *login) {
     fclose(temp);
 
     if (encontrado) {
-        remove("../resources/usuarios.dat");
-        rename("../resources/temp.dat", "usuarios.dat");
+        remove(resourceFile("usuarios.dat"));
+        rename(resourceFile("temp.dat"), "usuarios.dat");
         printf("Usuário %s excluído com sucesso!\n", login);
     } else {
-        remove("../resources/temp.dat");
+        remove(resourceFile("temp.dat"));
         printf("Usuário não encontrado!\n");
     }
+}
+
+char* resourceFile(char *nome) {
+    char *fullPath = malloc(strlen(RESOURCE_PATH) + strlen(nome) + 1);
+
+    if (fullPath == NULL) {
+        printf("Erro na alocação de memória.\n");
+        return NULL; 
+    }
+
+    strcpy(fullPath, RESOURCE_PATH);
+
+    strcat(fullPath, nome);
+
+    return fullPath; 
 }
 
 void exibirPerfil(Perfil perfil) {
@@ -523,27 +635,4 @@ void exibirPerfil(Perfil perfil) {
         default:
             printf("Perfil desconhecido\n");
     }
-}
-
-void analisarSenha(char *senha){
-    int i = 0;
-    printf("Digite a senha: ");
-    while(1) {
-        char ch = getch();
-        
-        if (ch == 13) {
-            break;
-        } else if (ch == 8) { 
-            if (i > 0) {
-                i--;
-                printf("\b \b"); 
-            }
-        } else {
-            senha[i] = ch;
-            i++;
-            printf("*"); 
-        }
-    }
-
-    senha[i] = '\0';
 }
