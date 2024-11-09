@@ -346,16 +346,24 @@ void realizarCompra() {
     char nome[50];
     float total = 0.0;
 
+    Venda prodVendidos[MAX_PRODUTOS];
+    int numV = 0;
+
     while (1) {
         printf("Escolha uma opção:\n");
         printf("1. Selecionar produto por ID\n");
         printf("2. Selecionar produto por nome\n");
         printf("3. Finalizar compra\n");
+        printf("4. Cancelar Compra\n");
         printf("Opção: ");
         scanf("%d", &opcao);
 
         if (opcao == 3) {
             break;
+        }
+
+        if(opcao == 4){
+            return;
         }
 
         switch (opcao) {
@@ -377,6 +385,8 @@ void realizarCompra() {
                             vendas[numVendas].precoUnitario = produtos[i].preco;
                             vendas[numVendas].quantidadeVendida = quantidade;
                             vendas[numVendas].valorTotal = produtos[i].preco * quantidade;
+                            prodVendidos[numV] = vendas[numVendas];
+                            numV++;
                             numVendas++;
                         } else {
                             printf("Quantidade indisponível.\n");
@@ -405,6 +415,8 @@ void realizarCompra() {
                             vendas[numVendas].precoUnitario = produtos[i].preco;
                             vendas[numVendas].quantidadeVendida = quantidade;
                             vendas[numVendas].valorTotal = produtos[i].preco * quantidade;
+                            prodVendidos[numV] = vendas[numVendas];
+                            numV++;
                             numVendas++;
                         } else {
                             printf("Quantidade indisponível.\n");
@@ -422,7 +434,15 @@ void realizarCompra() {
         }
     }
 
-    printf("Valor total da compra: R$%.2f\n", total);
+    system(CLEAR);
+    printf("Registro de Compra: \n");
+    printf("ID Produto | Nome Produto | Preço Unitário | Quantidade Vendida | Valor Total\n");
+    for(int x = 0; x <= numV; x++){
+        if(prodVendidos[x].idProduto != 0){
+        printf("%d, %s, %.2f, %d, %.2f\n", prodVendidos[x].idProduto, prodVendidos[x].nomeProduto, prodVendidos[x].precoUnitario, prodVendidos[x].quantidadeVendida, prodVendidos[x].valorTotal);
+        }
+    }
+    printf("\n\nValor total da compra: R$%.2f\n", total);
 
     atualizarCSV();
 }
@@ -437,11 +457,16 @@ void exibirRelatorioVendas(Perfil perfil) {
         case ADMIN:
             break;
     }
+
+    float valorTotalVendas = 0;
+
     printf("Relatório de Vendas:\n");
     printf("ID Produto | Nome Produto | Preço Unitário | Quantidade Vendida | Valor Total\n");
     for (int i = 0; i < numVendas; i++) {
         printf("%d | %s | %.2f | %d | %.2f\n", vendas[i].idProduto, vendas[i].nomeProduto, vendas[i].precoUnitario, vendas[i].quantidadeVendida, vendas[i].valorTotal);
+        valorTotalVendas += vendas[i].valorTotal;
     }
+    printf("\n\nO valor total das vendas foi: %.2f", valorTotalVendas);
 }
 
 void lerArquivo(const char *nomeArquivo) {
