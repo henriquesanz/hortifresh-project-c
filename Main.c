@@ -141,6 +141,8 @@ void gerenciarUsuarios(Perfil perfil);
 void registrarUsuario(const char *login, const char *senha, Perfil perfil);
 void analisarSenha(char *senha);
 char* resourceFile(char *nome);
+void atualizarProdutosEmEstoque(Perfil perfil);
+void excluirProduto(Perfil perfil);
 
 int main() {
     configurarUTF8();
@@ -167,6 +169,8 @@ void menuPrincipal(Perfil perfil){
         printf("3. Realizar Compra\n");
         printf("4. Relatório de Vendas\n");
         printf("5. Gerenciar Usuários\n");
+        printf("6. Atualizar Produtos em Estoque\n");
+        printf("7. Excluir Produtos\n");
         printf("0. Sair\n");
         printf("Escolha uma opção: ");
         scanf("%d", &opcao);
@@ -192,6 +196,14 @@ void menuPrincipal(Perfil perfil){
                 break;
             case 5:
                 gerenciarUsuarios(perfil);
+                aguardarAcao();
+                break;
+            case 6:
+                atualizarProdutosEmEstoque(perfil);
+                aguardarAcao();
+                break;
+            case 7:
+                excluirProduto(perfil);
                 aguardarAcao();
                 break;
             case 0:
@@ -370,6 +382,10 @@ void realizarCompra() {
             case 1:
                 printf("Digite o ID do produto: ");
                 scanf("%d", &id);
+                if(id == 0){
+                    printf("Produto não encontrado.\n");
+                    break;
+                }
                 for (i = 0; i < totalProdutos; i++) {
                     if (produtos[i].id == id) {
                         printf("Produto encontrado: %s\n", produtos[i].nome);
@@ -443,6 +459,164 @@ void realizarCompra() {
         }
     }
     printf("\n\nValor total da compra: R$%.2f\n", total);
+
+    atualizarCSV();
+}
+
+void atualizarProdutosEmEstoque(Perfil perfil) {
+
+    switch (perfil) {
+        case FUNCIONARIO:
+            printf("Perfil com Acesso Insuficiente (FUNCIONARIO)! Somente Perfis GERENTE ou ADMIN possuem acesso para Gerenciar Usuarios!\n");
+            return;
+        case GERENTE:
+            break;
+        case ADMIN:
+            break;
+    }
+
+    int opcao, id, i;
+    char nome[50];
+
+    while (1) {
+        printf("Escolha uma opção:\n");
+        printf("1. Selecionar produto por ID\n");
+        printf("2. Selecionar produto por nome\n");
+        printf("3. Finalizar Atualização\n");
+        printf("Opção: ");
+        scanf("%d", &opcao);
+
+        if (opcao == 3) {
+            break;
+        }
+
+        switch (opcao) {
+            case 1:
+                printf("Digite o ID do produto: ");
+                scanf("%d", &id);
+                for (i = 0; i < totalProdutos; i++) {
+                    if (produtos[i].id == id) {
+                        printf("Produto encontrado: %s\n", produtos[i].nome);
+                        printf("Preço do Produto: %.2f\n", produtos[i].preco);
+                        printf("Quantidade Registrada: %i\n", produtos[i].quantidade);
+                        printf("Digite o novo nome do Produto: ");
+                        scanf("%s", produtos[i].nome);
+                        printf("Digite o novo preço do Produto: ");
+                        scanf("%f", &produtos[i].preco);
+                        printf("Digite o nova quantidade do Produto: ");
+                        scanf("%i", &produtos[i].quantidade);
+                        break;
+                    }
+                }
+                if (i == totalProdutos) {
+                    printf("Produto não encontrado.\n");
+                }
+                break;
+            case 2:
+                printf("Digite o nome do produto: ");
+                scanf("%s", nome);
+                for (i = 0; i < totalProdutos; i++) {
+                    if (strcmp(produtos[i].nome, nome) == 0) {
+                        printf("Produto encontrado: %s\n", produtos[i].nome);
+                        printf("Preço do Produto: %.2f\n", produtos[i].preco);
+                        printf("Quantidade Registrada: %i\n", produtos[i].quantidade);
+                        printf("Digite o novo nome do Produto: ");
+                        scanf("%s", produtos[i].nome);
+                        printf("Digite o novo preço do Produto: ");
+                        scanf("%f", &produtos[i].preco);
+                        printf("Digite o nova quantidade do Produto: ");
+                        scanf("%i", &produtos[i].quantidade);
+                        break;
+                    }
+                }
+                if (i == totalProdutos) {
+                    printf("Produto não encontrado.\n");
+                }
+                break;
+            default:
+                printf("Opção inválida.\n");
+                break;
+        }
+    }
+
+    system(CLEAR);
+
+    printf("Produtos Atualizados!");
+
+    atualizarCSV();
+}
+
+void excluirProduto(Perfil perfil) {
+
+    switch (perfil) {
+        case FUNCIONARIO:
+            printf("Perfil com Acesso Insuficiente (FUNCIONARIO)! Somente Perfis GERENTE ou ADMIN possuem acesso para Gerenciar Usuarios!\n");
+            return;
+        case GERENTE:
+            break;
+        case ADMIN:
+            break;
+    }
+
+    int opcao, id, i, j;
+    char nome[50];
+
+    printf("Escolha uma opção:\n");
+    printf("1. Selecionar produto por ID\n");
+    printf("2. Selecionar produto por nome\n");
+    printf("Opção: ");
+    scanf("%d", &opcao);
+
+    switch (opcao) {
+        case 1:
+            printf("Digite o ID do produto: ");
+            scanf("%d", &id);
+            if(id == 0){
+                printf("ID Inválido!");
+                break;
+            }
+
+            for (i = 0; i < totalProdutos; i++) {
+                if (produtos[i].id == id) {
+                    printf("Produto encontrado: %s\n", produtos[i].nome);
+                    printf("Preço do Produto: %.2f\n", produtos[i].preco);
+                    printf("Quantidade Registrada: %i\n", produtos[i].quantidade);
+                    for (j = i; j < totalProdutos - 1; j++) {
+                        produtos[j] = produtos[j + 1];
+                    }
+                    (totalProdutos)--;
+                    printf("Produto com id %d excluído com sucesso!\n", id);
+                    return;
+                }
+            }
+
+            printf("Produto com id %d não encontrado.\n", id);
+        case 2:
+            printf("Digite o nome do produto: ");
+            scanf("%s", nome);
+            for (i = 0; i < totalProdutos; i++) {
+                if (strcmp(produtos[i].nome, nome) == 0) {
+                    printf("Produto encontrado: %s\n", produtos[i].nome);
+                    printf("Preço do Produto: %.2f\n", produtos[i].preco);
+                    printf("Quantidade Registrada: %i\n", produtos[i].quantidade);
+                    for (j = i; j < totalProdutos - 1; j++) {
+                        produtos[j] = produtos[j + 1];
+                    }
+                    (totalProdutos)--;
+                    printf("Produto com nome %s excluído com sucesso!\n", nome);
+                    return;
+                }
+            }
+            if (i == totalProdutos) {
+                printf("Produto não encontrado.\n");
+            }
+            break;
+        default:
+            printf("Opção inválida.\n");
+            break;
+    }
+
+    system(CLEAR);
 
     atualizarCSV();
 }
