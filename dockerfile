@@ -27,11 +27,19 @@ WORKDIR /app
 COPY Main.c .
 COPY ./resources ./resources
 
+# Ajusta as permissões da pasta resources para permitir gravação
+RUN chmod -R 777 ./resources
+
 # Compila o código C
 RUN gcc -o hortifresh Main.c
 
 # Expõe a porta 7681 para acesso ao ttyd
 EXPOSE 7681
+
+# Executa o contêiner como root para garantir permissões de gravação
+USER root
+
+ENV TERM xterm-256color
 
 # Comando para iniciar o ttyd em modo gravável
 CMD ["ttyd", "--writable", "-p", "7681", "./hortifresh"]

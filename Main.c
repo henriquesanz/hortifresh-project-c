@@ -4,6 +4,13 @@
 #include <unistd.h>
 #include <limits.h>
 
+#define VERMELHO "\033[31m"
+#define VERDE "\033[32m"
+#define AMARELO "\033[33m"
+#define AZUL "\033[34m"
+#define NEGRITO "\033[1m"
+#define RESET "\033[0m"
+
 #ifdef _WIN32
     #define RESOURCE_PATH "../resources/"
     #define CLEAR "cls"
@@ -96,8 +103,6 @@ void analisarSenha(char *senha) {
 #define MAX_STRING_LENGTH 50
 #define MAX_LINE_LENGTH 200
 
-//TODO: Incluir Exclusão de Produtos
-
 typedef struct {
     int id;
     char nome[50];
@@ -162,17 +167,17 @@ void menuPrincipal(Perfil perfil){
 
     do {
         system(CLEAR);
-        printf("\nSistema de Gerenciamento Hortifruti\n");
+        printf("\n%s%sSistema de Gerenciamento Hortifruti%s\n", NEGRITO, VERDE, RESET);
         exibirPerfil(perfil);
-        printf("1. Cadastrar Produto\n");
-        printf("2. Exibir Produtos\n");
-        printf("3. Realizar Compra\n");
-        printf("4. Relatório de Vendas\n");
-        printf("5. Gerenciar Usuários\n");
-        printf("6. Atualizar Produtos em Estoque\n");
-        printf("7. Excluir Produtos\n");
-        printf("0. Sair\n");
-        printf("Escolha uma opção: ");
+        printf("%s%s1.%s Cadastrar Produto\n", NEGRITO, VERMELHO, RESET);
+        printf("%s%s2.%s Exibir Produtos\n", NEGRITO, AZUL, RESET);
+        printf("%s%s3.%s Realizar Compra\n", NEGRITO, AZUL, RESET);
+        printf("%s%s4.%s Relatório de Vendas\n", NEGRITO, VERMELHO, RESET);
+        printf("%s%s5.%s Gerenciar Usuários\n", NEGRITO, VERMELHO, RESET);
+        printf("%s%s6.%s Atualizar Produtos em Estoque\n", NEGRITO, AZUL, RESET);
+        printf("%s%s7.%s Excluir Produtos\n", NEGRITO, VERMELHO, RESET);
+        printf("%s%s0.%s Sair\n", NEGRITO, AZUL, RESET);
+        printf("%sEscolha uma opção: %s", NEGRITO, RESET);
         scanf("%d", &opcao);
 
         system(CLEAR);
@@ -207,7 +212,7 @@ void menuPrincipal(Perfil perfil){
                 aguardarAcao();
                 break;
             case 0:
-                printf("Encerrando...\n");
+                printf("%sEncerrando...%s\n", VERMELHO, RESET);
                 break;
             default:
                 printf("Opção Inválida!\n");
@@ -232,22 +237,22 @@ Perfil menuLogin(){
         switch (validUser) {
             case 0:
                 system(CLEAR);
-                printf("Login ou senha inválidos.\n");
+                printf("%s%sLogin ou senha inválidos.%s\n", VERMELHO, NEGRITO, RESET);
                 break;
             case 1:
                 system(CLEAR);
-                printf("Login bem-sucedido!\n");
+                printf("%s%sLogin bem-sucedido!%s\n", NEGRITO, VERDE, RESET);
                 exibirPerfil(perfil);
                 aguardarAcao();
                 break;
             case 2:
                 system(CLEAR);
-                printf("Nenhum usuário foi cadastrado ainda!\n");
+                printf("%s%sNenhum usuário foi cadastrado ainda!%s\n", NEGRITO, VERMELHO, RESET);
                 aguardarAcao();
                 cadastrarUsuario();
                 break;
             default:
-                printf("Login ou senha inválidos.\n");
+                printf("%s%sLogin ou senha inválidos.%s\n", NEGRITO, VERMELHO, RESET);
                 break;
         }
     } while (validUser != 1);
@@ -260,10 +265,10 @@ void gerenciarUsuarios(Perfil perfil) {
 
     switch (perfil) {
         case FUNCIONARIO:
-            printf("Perfil com Acesso Insuficiente (FUNCIONARIO)! Somente Perfis ADMIN possuem acesso para Gerenciar Usuarios!\n");
+            printf("%sPerfil com Acesso Insuficiente (FUNCIONARIO)! Somente Perfis ADMIN possuem acesso para Gerenciar Usuarios!%s\n", VERMELHO, RESET);
             return;
         case GERENTE:
-            printf("Perfil com Acesso Insuficiente (GERENTE)! Somente Perfis ADMIN possuem acesso para Gerenciar Usuarios!\n");
+            printf("%sPerfil com Acesso Insuficiente (GERENTE)! Somente Perfis ADMIN possuem acesso para Gerenciar Usuarios!%s\n", VERMELHO, RESET);
             return;
         case ADMIN:
             break;
@@ -284,14 +289,14 @@ void gerenciarUsuarios(Perfil perfil) {
             excluirUsuario(login);
             break;
         default:
-            printf("Opção inválida!\n");
+            printf("%sOpção inválida!%s\n", VERMELHO, RESET);
     }
 }
 
 void cadastrarUsuario(){
     char login[50], senha[50];
     system(CLEAR);
-    printf("Cadastro de Novo Usuário: \n");
+    printf("%sCadastro de Novo Usuário: %s\n", NEGRITO, RESET);
     printf("Digite o login: ");
     scanf("%s", login);
     analisarSenha(senha);
@@ -313,7 +318,7 @@ void cadastrarProduto(Perfil perfil) {
 
     switch (perfil) {
         case FUNCIONARIO:
-            printf("Perfil com Acesso Insuficiente (FUNCIONARIO)! Somente Perfis GERENTE ou ADMIN possuem acesso para Gerenciar Usuarios!\n");
+            printf("%sPerfil com Acesso Insuficiente (FUNCIONARIO)! Somente Perfis GERENTE ou ADMIN possuem acesso para Gerenciar Usuarios!%s\n", VERMELHO, RESET);
             return;
         case GERENTE:
             break;
@@ -342,14 +347,14 @@ void cadastrarProduto(Perfil perfil) {
 
         totalProdutos++;
     } else {
-        printf("Limite de registros atingido.\n");
+        printf("%sLimite de registros atingido.%s\n", VERMELHO, RESET);
     }
 }
 
 void exibirProdutos() {
-    printf("\nProdutos cadastrados:\n");
+    printf("\n%sProdutos cadastrados:%s\n", NEGRITO, RESET);
     for (int i = 0; i < totalProdutos; i++) {
-        printf("Id: %d | Nome: %s | Preço: R$ %.2f | Quantidade: %d\n", produtos[i].id, produtos[i].nome, produtos[i].preco, produtos[i].quantidade);
+        printf("%s%sId:%s %d %s%s| Nome:%s %s %s%s| Preço: %sR$ %.2f %s%s| Quantidade:%s %d\n", NEGRITO, AZUL,RESET, produtos[i].id, NEGRITO, AZUL, RESET, produtos[i].nome, NEGRITO, AZUL, RESET, produtos[i].preco, NEGRITO, AZUL, RESET, produtos[i].quantidade);
     }
 }
 
@@ -362,7 +367,7 @@ void realizarCompra() {
     int numV = 0;
 
     while (1) {
-        printf("Escolha uma opção:\n");
+        printf("%sEscolha uma opção:%s\n", NEGRITO, RESET);
         printf("1. Selecionar produto por ID\n");
         printf("2. Selecionar produto por nome\n");
         printf("3. Finalizar compra\n");
@@ -383,14 +388,14 @@ void realizarCompra() {
                 printf("Digite o ID do produto: ");
                 scanf("%d", &id);
                 if(id == 0){
-                    printf("Produto não encontrado.\n");
+                    printf("%sProduto não encontrado.%s\n", VERMELHO, RESET);
                     break;
                 }
                 for (i = 0; i < totalProdutos; i++) {
                     if (produtos[i].id == id) {
-                        printf("Produto encontrado: %s\n", produtos[i].nome);
-                        printf("Preço do Produto: %.2f\n", produtos[i].preco);
-                        printf("Digite a quantidade: ");
+                        printf("%sProduto encontrado: %s%s\n", NEGRITO, RESET, produtos[i].nome);
+                        printf("%sPreço do Produto: %s%.2f\n", NEGRITO, RESET, produtos[i].preco);
+                        printf("%sDigite a quantidade: %s", NEGRITO, RESET);
                         scanf("%d", &quantidade);
                         if (quantidade <= produtos[i].quantidade) {
                             produtos[i].quantidade -= quantidade;
@@ -405,13 +410,13 @@ void realizarCompra() {
                             numV++;
                             numVendas++;
                         } else {
-                            printf("Quantidade indisponível.\n");
+                            printf("%sQuantidade indisponível.%s\n", VERMELHO, RESET);
                         }
                         break;
                     }
                 }
                 if (i == totalProdutos) {
-                    printf("Produto não encontrado.\n");
+                    printf("%sProduto não encontrado.%s\n", VERMELHO, RESET);
                 }
                 break;
             case 2:
@@ -435,30 +440,30 @@ void realizarCompra() {
                             numV++;
                             numVendas++;
                         } else {
-                            printf("Quantidade indisponível.\n");
+                            printf("%sQuantidade indisponível.%s\n", VERMELHO, RESET);
                         }
                         break;
                     }
                 }
                 if (i == totalProdutos) {
-                    printf("Produto não encontrado.\n");
+                    printf("%sProduto não encontrado.\n%s", VERMELHO, RESET);
                 }
                 break;
             default:
-                printf("Opção inválida.\n");
+                printf("%s%sOpção inválida.%s\n", VERMELHO, NEGRITO, RESET);
                 break;
         }
     }
 
     system(CLEAR);
-    printf("Registro de Compra: \n");
-    printf("ID Produto | Nome Produto | Preço Unitário | Quantidade Vendida | Valor Total\n");
+    printf("%sRegistro de Compra: %s\n", NEGRITO, RESET);
+    printf("%sID Produto | Nome Produto | Preço Unitário | Quantidade Vendida | Valor Total%s\n", NEGRITO, RESET);
     for(int x = 0; x <= numV; x++){
         if(prodVendidos[x].idProduto != 0){
         printf("%d, %s, %.2f, %d, %.2f\n", prodVendidos[x].idProduto, prodVendidos[x].nomeProduto, prodVendidos[x].precoUnitario, prodVendidos[x].quantidadeVendida, prodVendidos[x].valorTotal);
         }
     }
-    printf("\n\nValor total da compra: R$%.2f\n", total);
+    printf("\n\n%sValor total da compra: %sR$%.2f\n", NEGRITO, RESET, total);
 
     atualizarCSV();
 }
@@ -467,7 +472,7 @@ void atualizarProdutosEmEstoque(Perfil perfil) {
 
     switch (perfil) {
         case FUNCIONARIO:
-            printf("Perfil com Acesso Insuficiente (FUNCIONARIO)! Somente Perfis GERENTE ou ADMIN possuem acesso para Gerenciar Usuarios!\n");
+            printf("%sPerfil com Acesso Insuficiente (FUNCIONARIO)! Somente Perfis GERENTE ou ADMIN possuem acesso para Gerenciar Usuarios!%s\n", VERMELHO, RESET);
             return;
         case GERENTE:
             break;
@@ -479,7 +484,7 @@ void atualizarProdutosEmEstoque(Perfil perfil) {
     char nome[50];
 
     while (1) {
-        printf("Escolha uma opção:\n");
+        printf("%sEscolha uma opção:%s\n", NEGRITO, RESET);
         printf("1. Selecionar produto por ID\n");
         printf("2. Selecionar produto por nome\n");
         printf("3. Finalizar Atualização\n");
@@ -496,9 +501,9 @@ void atualizarProdutosEmEstoque(Perfil perfil) {
                 scanf("%d", &id);
                 for (i = 0; i < totalProdutos; i++) {
                     if (produtos[i].id == id) {
-                        printf("Produto encontrado: %s\n", produtos[i].nome);
-                        printf("Preço do Produto: %.2f\n", produtos[i].preco);
-                        printf("Quantidade Registrada: %i\n", produtos[i].quantidade);
+                        printf("%sProduto encontrado: %s%s\n", NEGRITO, RESET, produtos[i].nome);
+                        printf("%sPreço do Produto: %s%.2f\n", NEGRITO, RESET, produtos[i].preco);
+                        printf("%sQuantidade Registrada: %s%i\n", NEGRITO, RESET, produtos[i].quantidade);
                         printf("Digite o novo nome do Produto: ");
                         scanf("%s", produtos[i].nome);
                         printf("Digite o novo preço do Produto: ");
@@ -509,7 +514,7 @@ void atualizarProdutosEmEstoque(Perfil perfil) {
                     }
                 }
                 if (i == totalProdutos) {
-                    printf("Produto não encontrado.\n");
+                    printf("%sProduto não encontrado.%s\n", VERMELHO, RESET);
                 }
                 break;
             case 2:
@@ -517,9 +522,9 @@ void atualizarProdutosEmEstoque(Perfil perfil) {
                 scanf("%s", nome);
                 for (i = 0; i < totalProdutos; i++) {
                     if (strcmp(produtos[i].nome, nome) == 0) {
-                        printf("Produto encontrado: %s\n", produtos[i].nome);
-                        printf("Preço do Produto: %.2f\n", produtos[i].preco);
-                        printf("Quantidade Registrada: %i\n", produtos[i].quantidade);
+                        printf("%sProduto encontrado: %s%s\n", NEGRITO, RESET, produtos[i].nome);
+                        printf("%sPreço do Produto: %s%.2f\n", NEGRITO, RESET, produtos[i].preco);
+                        printf("%sQuantidade Registrada: %s%i\n", NEGRITO, RESET, produtos[i].quantidade);
                         printf("Digite o novo nome do Produto: ");
                         scanf("%s", produtos[i].nome);
                         printf("Digite o novo preço do Produto: ");
@@ -530,11 +535,11 @@ void atualizarProdutosEmEstoque(Perfil perfil) {
                     }
                 }
                 if (i == totalProdutos) {
-                    printf("Produto não encontrado.\n");
+                    printf("%sProduto não encontrado.%s\n", VERMELHO, RESET);
                 }
                 break;
             default:
-                printf("Opção inválida.\n");
+                printf("%sOpção inválida.%s\n", VERMELHO, RESET);
                 break;
         }
     }
@@ -561,7 +566,7 @@ void excluirProduto(Perfil perfil) {
     int opcao, id, i, j;
     char nome[50];
 
-    printf("Escolha uma opção:\n");
+    printf("%sEscolha uma opção:%s\n", NEGRITO, RESET);
     printf("1. Selecionar produto por ID\n");
     printf("2. Selecionar produto por nome\n");
     printf("Opção: ");
@@ -578,41 +583,41 @@ void excluirProduto(Perfil perfil) {
 
             for (i = 0; i < totalProdutos; i++) {
                 if (produtos[i].id == id) {
-                    printf("Produto encontrado: %s\n", produtos[i].nome);
-                    printf("Preço do Produto: %.2f\n", produtos[i].preco);
-                    printf("Quantidade Registrada: %i\n", produtos[i].quantidade);
+                    printf("%sProduto encontrado: %s%s\n", NEGRITO, RESET, produtos[i].nome);
+                    printf("%sPreço do Produto: %s%.2f\n", NEGRITO, RESET, produtos[i].preco);
+                    printf("%sQuantidade Registrada: %s%i\n", NEGRITO, RESET, produtos[i].quantidade);
                     for (j = i; j < totalProdutos - 1; j++) {
                         produtos[j] = produtos[j + 1];
                     }
                     (totalProdutos)--;
-                    printf("Produto com id %d excluído com sucesso!\n", id);
+                    printf("%s%sProduto com id %d excluído com sucesso!%s\n", NEGRITO, VERMELHO, id, RESET);
                     return;
                 }
             }
 
-            printf("Produto com id %d não encontrado.\n", id);
+            printf("%s%sProduto com id %d não encontrado.%s\n", NEGRITO, VERMELHO, id, RESET);
         case 2:
             printf("Digite o nome do produto: ");
             scanf("%s", nome);
             for (i = 0; i < totalProdutos; i++) {
                 if (strcmp(produtos[i].nome, nome) == 0) {
-                    printf("Produto encontrado: %s\n", produtos[i].nome);
-                    printf("Preço do Produto: %.2f\n", produtos[i].preco);
-                    printf("Quantidade Registrada: %i\n", produtos[i].quantidade);
+                    printf("%sProduto encontrado: %s%s\n", NEGRITO, RESET, produtos[i].nome);
+                    printf("%sPreço do Produto: %s%.2f\n", NEGRITO, RESET, produtos[i].preco);
+                    printf("%sQuantidade Registrada: %s%i\n", NEGRITO, RESET, produtos[i].quantidade);
                     for (j = i; j < totalProdutos - 1; j++) {
                         produtos[j] = produtos[j + 1];
                     }
                     (totalProdutos)--;
-                    printf("Produto com nome %s excluído com sucesso!\n", nome);
+                    printf("%s%sProduto com nome %s excluído com sucesso!%s\n", NEGRITO, VERMELHO, nome, RESET);
                     return;
                 }
             }
             if (i == totalProdutos) {
-                printf("Produto não encontrado.\n");
+                printf("%sProduto não encontrado.%s\n", VERMELHO, RESET);
             }
             break;
         default:
-            printf("Opção inválida.\n");
+            printf("%sOpção inválida.%s\n", VERMELHO, RESET);
             break;
     }
 
@@ -624,7 +629,7 @@ void excluirProduto(Perfil perfil) {
 void exibirRelatorioVendas(Perfil perfil) {
     switch (perfil) {
         case FUNCIONARIO:
-            printf("Perfil com Acesso Insuficiente (FUNCIONARIO)! Somente Perfis GERENTE ou ADMIN possuem acesso para Gerenciar Usuarios!\n");
+            printf("%s%sPerfil com Acesso Insuficiente (FUNCIONARIO)! Somente Perfis GERENTE ou ADMIN possuem acesso para Gerenciar Usuarios!%s\n", NEGRITO, VERMELHO, RESET);
             return;
         case GERENTE:
             break;
@@ -634,13 +639,13 @@ void exibirRelatorioVendas(Perfil perfil) {
 
     float valorTotalVendas = 0;
 
-    printf("Relatório de Vendas:\n");
-    printf("ID Produto | Nome Produto | Preço Unitário | Quantidade Vendida | Valor Total\n");
+    printf("%sRelatório de Vendas:%s\n", NEGRITO, RESET);
+    printf("%sID Produto | Nome Produto | Preço Unitário | Quantidade Vendida | Valor Total%s\n", NEGRITO, RESET);
     for (int i = 0; i < numVendas; i++) {
         printf("%d | %s | %.2f | %d | %.2f\n", vendas[i].idProduto, vendas[i].nomeProduto, vendas[i].precoUnitario, vendas[i].quantidadeVendida, vendas[i].valorTotal);
         valorTotalVendas += vendas[i].valorTotal;
     }
-    printf("\n\nO valor total das vendas foi: %.2f", valorTotalVendas);
+    printf("\n\n%sO valor total das vendas foi: %sR$%.2f", NEGRITO, RESET, valorTotalVendas);
 }
 
 void lerArquivo(const char *nomeArquivo) {
@@ -654,7 +659,7 @@ void lerArquivo(const char *nomeArquivo) {
     }
 
     while (fgets(line, sizeof(line), file)) {
-        printf("%s", line);
+        printf("%s%s%s%s", NEGRITO, VERDE, line, RESET);
     }
 
     fclose(file);
@@ -697,7 +702,7 @@ void lerProdutos(FILE *file, Produto produtos[], int *totalProdutos) {
 void salvarProdutoNoCSV(Produto produto) {
     FILE *file = fopen(resourceFile("produtos.csv"), "a");
     if (file == NULL) {
-        printf("Erro ao abrir o arquivo.\n");
+        perror("Erro ao abrir o arquivo.\n");
         return;
     }
 
@@ -709,7 +714,7 @@ void salvarProdutoNoCSV(Produto produto) {
 void atualizarCSV() {
     FILE *arquivo = fopen(resourceFile("produtos.csv"), "w");
     if (arquivo == NULL) {
-        printf("Erro ao abrir o arquivo.\n");
+        perror("Erro ao abrir o arquivo.\n");
         return;
     }
 
@@ -755,7 +760,7 @@ int validarLogin(const char *login, const char *senha, Perfil *perfil) {
 void registrarUsuario(const char *login, const char *senha, Perfil perfil) {
     FILE *arquivo = fopen(resourceFile("usuarios.dat"), "a");
     if (arquivo == NULL) {
-        printf("Erro ao abrir o arquivo para registro!\n");
+        perror("Erro ao abrir o arquivo para registro!\n");
         return;
     }
 
@@ -768,7 +773,7 @@ void registrarUsuario(const char *login, const char *senha, Perfil perfil) {
     fprintf(arquivo, "%s %s %d\n", login, senhaCodificada, perfil);
     fclose(arquivo);
 
-    printf("Usuário registrado com sucesso!\n");
+    printf("%s%sUsuário registrado com sucesso!%s\n", VERDE, NEGRITO, RESET);
 }
 
 void excluirUsuario(const char *login) {
@@ -776,7 +781,7 @@ void excluirUsuario(const char *login) {
     FILE *temp = fopen(resourceFile("temp.dat"), "w");
 
     if (arquivo == NULL || temp == NULL) {
-        printf("Erro ao abrir os arquivos!\n");
+        perror("Erro ao abrir os arquivos!\n");
         return;
     }
 
@@ -787,29 +792,36 @@ void excluirUsuario(const char *login) {
     while (fscanf(arquivo, "%s %s %d", storedLogin, storedSenha, &storedPerfil) != EOF) {
         if (strcmp(storedLogin, login) == 0) {
             encontrado = 1;
-            continue;
+            continue; // Ignora a escrita do usuário a ser excluído
         }
-        fprintf(temp, "%s %s %d\n", storedLogin, storedSenha, storedPerfil);
+        fprintf(temp, "%s %s %d\n", storedLogin, storedSenha, storedPerfil); // Escreve os outros usuários
     }
 
     fclose(arquivo);
     fclose(temp);
 
     if (encontrado) {
-        remove(resourceFile("usuarios.dat"));
-        rename(resourceFile("temp.dat"), "usuarios.dat");
-        printf("Usuário %s excluído com sucesso!\n", login);
+        if (remove(resourceFile("usuarios.dat")) == 0) {
+            if (rename(resourceFile("temp.dat"), resourceFile("usuarios.dat")) == 0) {
+                printf("%s%sUsuário %s excluído com sucesso!%s\n", VERMELHO, NEGRITO, login, RESET);
+            } else {
+                perror("Erro ao renomear o arquivo temporário.\n");
+            }
+        } else {
+            perror("Erro ao remover o arquivo original.\n");
+        }
     } else {
         remove(resourceFile("temp.dat"));
-        printf("Usuário não encontrado!\n");
+        printf("%s%sUsuário não encontrado!%s\n", VERMELHO, NEGRITO, RESET);
     }
 }
+
 
 char* resourceFile(char *nome) {
     char *fullPath = malloc(strlen(RESOURCE_PATH) + strlen(nome) + 1);
 
     if (fullPath == NULL) {
-        printf("Erro na alocação de memória.\n");
+        perror("Erro na alocação de memória.\n");
         return NULL; 
     }
 
@@ -823,15 +835,15 @@ char* resourceFile(char *nome) {
 void exibirPerfil(Perfil perfil) {
     switch (perfil) {
         case FUNCIONARIO:
-            printf("Perfil: FUNCIONARIO\n");
+            printf("%sPerfil: %sFUNCIONARIO\n", NEGRITO, RESET);
             break;
         case GERENTE:
-            printf("Perfil: GERENTE\n");
+            printf("%sPerfil: %sGERENTE\n", NEGRITO, RESET);
             break;
         case ADMIN:
-            printf("Perfil: ADMIN\n");
+            printf("%sPerfil: %sADMIN\n", NEGRITO, RESET);
             break;
         default:
-            printf("Perfil desconhecido\n");
+            printf("%sPerfil desconhecido%s\n", NEGRITO, RESET);
     }
 }
